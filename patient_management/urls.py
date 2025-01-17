@@ -23,8 +23,8 @@ from django.views.generic.base import TemplateView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
-    path("app/", include("app.urls")),
-    path("app/", include("django.contrib.auth.urls")),
+    path("app/", include('app.urls')),
+    path("auth/", include('django.contrib.auth.urls')),
 ]
 
 if bool(settings.DEBUG):
