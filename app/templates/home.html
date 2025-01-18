@@ -8,9 +8,23 @@
 {% block extend_footer %}{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-  Hi {{ user.first_name }}!
-{% else %}
-  <p>You are not logged in</p>
-{% endif %}
+<div class="hero">
+  {% if user.is_authenticated %}
+    Hi {{ user.first_name }}!
+    <main>
+      <h1>Dashboard</h1>
+      <p>View and manage all your patient data.</p>
+      <div class="card">
+          <h3>Clinical History</h3>
+          <p>View the latest clinical histories from patients.</p>
+          <button class="btn">View Details</button>
+      </div>
+      {% if user.is_admin %}
+      <button class="btn"><i class="fas fa-user-plus"></i> Add Patient</button>
+      {% endif %}
+  </main>
+  {% else %}
+    <p>You are not logged in</p>
+  {% endif %}
+</div>
 {% endblock %}

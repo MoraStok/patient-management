@@ -2,7 +2,6 @@ from django import forms
 from django.contrib.auth.forms import (
     UserCreationForm,
     UserChangeForm,
-    AuthenticationForm,
     ReadOnlyPasswordHashField
     )
 from django.forms import ValidationError
@@ -27,7 +26,20 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ["email", "date_of_birth", "first_name", "last_name"]
+        fields = ['first_name', 'last_name', 'date_of_birth', 'email', 'password1', 'password2']
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Adding placeholders and CSS classes for better styling
+        self.fields['first_name'].widget.attrs.update({'placeholder': 'First Name', 'class': 'form-control'})
+        self.fields['last_name'].widget.attrs.update({'placeholder': 'Last Name', 'class': 'form-control'})
+        self.fields['date_of_birth'].widget.attrs.update({'placeholder': 'Date of Birth', 'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'placeholder': 'Email Address', 'class': 'form-control'})
+        self.fields['password1'].widget.attrs.update({'placeholder': 'Password', 'class': 'form-control'})
+        self.fields['password2'].widget.attrs.update({'placeholder': 'Confirm Password', 'class': 'form-control'})
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -72,3 +84,12 @@ class CalendarCreation(forms.ModelForm):
     cal_events = forms.ModelChoiceField(queryset=CalendarEvent.objects.all())
     prof = forms.ModelChoiceField(queryset=Professional.objects.all())
     patient = forms.ModelChoiceField(queryset=Patient.objects.all())
+
+# class AppointmentRequestForm(forms.ModelForm):
+#     class Meta:
+#         model = CalendarEvent
+#         fields = ['patient', 'doctor', 'preferred_date', 'notes']
+
+
+class MessageForm(forms.ModelForm):
+    pass

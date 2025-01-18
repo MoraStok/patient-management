@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 ## CUSTOM USER MODEL ##
 class UserManager(BaseUserManager):
-    def create_user(self, email, date_of_birth, first_name, last_name, password=None):
+    def create_user(self, email, date_of_birth, first_name, last_name, password=None, role='patient'):
         """
         Creates and saves a User with the given email, date of
         birth, name and password. 
@@ -18,8 +18,8 @@ class UserManager(BaseUserManager):
             date_of_birth=date_of_birth,
             first_name=first_name,
             last_name=last_name,
+            role=role,
         )
-
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -35,12 +35,19 @@ class UserManager(BaseUserManager):
             date_of_birth=date_of_birth,
             first_name=first_name,
             last_name=last_name,
+            role='doctor',
         )
         user.is_admin = True
         user.save(using=self._db)
         return user
 
 class CustomUser(AbstractUser):
+    ROLE_CHOICES = [
+        ('doctor', 'Doctor'),
+        ('assistant', 'Doctor\'s Assistant'),
+        ('patient', 'Patient'),
+    ]
+    username = None
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
@@ -49,9 +56,11 @@ class CustomUser(AbstractUser):
     date_of_birth = models.DateField(blank=True, null=True)
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
-    is_active = models.BooleanField(default=True, blank=True, null=True)
-    is_admin = models.BooleanField(default=False, blank=True, null=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
     avatar = models.ImageField(blank=True, null=True, upload_to="avatar")
+
+    is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
 
     objects = UserManager()
 

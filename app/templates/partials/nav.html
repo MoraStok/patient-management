@@ -1,33 +1,18 @@
 {% load static %}
 
-<header>
-    <div class="headerCol">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-        <div class="col-auto">
-            <div class="logoCol"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="..."></a></div>
-        </div>
-        <div class="col">
-            <div class="d-md-none">
-            <button class="navToggle">
-                <span class="navToggle__text">Toggle Menu</span>
-            </button>
-            </div>
-            <div class="navCollapseCol">
-            <div class="navCol">
-                <ul>
-                <li><a href="{%url 'home'%}">Home</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{%url 'logout'%}">Log Out</a></li>
-                {% else %}
-                    <li><a href="{%url 'signup'%}">Sign Up</a></li>
-                    <li><a href="{%url 'login'%}">Log In</a></li>
-                {% endif %}
-                </ul>
-            </div>
-            </div>
-        </div>
-        </div>
+<nav>
+    <div class="logo">
+        <a href="{% url 'home' %}" style="font-weight: bold; font-size: 1.2em;">Patient Management</a>
     </div>
+    <div class="nav-links">
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="#" id="logout-link">Logout</a>
+        {% else %}
+            <a href="{% url 'signup' %}">Sign Up</a>
+            <a href="{% url 'login' %}">Login</a>
+        {% endif %}
     </div>
-</header>
+</nav>
+
+<script src="{% static 'js/script.js' %}"></script>
