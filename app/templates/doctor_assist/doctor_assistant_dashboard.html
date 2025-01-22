@@ -1,17 +1,19 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block extend_header %}{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block extend_footer %}{% endblock %}
 
 {% block content %}
-  <h1>Welcome, {{ user.first_name }}!</h1>
-  <p>You are logged in as a {{ user.role }}.</p>
-  <div>
-      <h2>Patient Management</h2>
-      <a href="{% url 'add_patient' %}">Add Patient</a>
+  <div class='sidebar'>
+      <h3>Patient Management</h3>
+      <a  href="{% url 'add_patient' %}">Add Patient</a>
       <a href="{% url 'view_patients' %}">View Patients</a>
       <a href="{% url 'manage_appointments' %}">Manage Appointments</a>
+  </div>
+  <div class='content'>
+    <h1>Welcome, {{ user.first_name }}!</h1>
+    <p>You are logged in as a {{ user.role }}.</p>
   </div>
 {% endblock %}

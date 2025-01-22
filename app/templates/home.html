@@ -3,28 +3,22 @@
 
 {% block title %}Home{% endblock %}
 
-{% block extend_header %}{% endblock %}
-
 {% block extend_footer %}{% endblock %}
 
 {% block content %}
-<div class="hero">
+<div>
   {% if user.is_authenticated %}
-    Hi {{ user.first_name }}!
-    <main>
-      <h1>Dashboard</h1>
-      <p>View and manage all your patient data.</p>
-      <div class="card">
-          <h3>Clinical History</h3>
-          <p>View the latest clinical histories from patients.</p>
-          <button class="btn">View Details</button>
-      </div>
-      {% if user.is_admin %}
-      <button class="btn"><i class="fas fa-user-plus"></i> Add Patient</button>
-      {% endif %}
-  </main>
+  <div class="sidebar">
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+    <a href="{% url 'home' %}">Messages</a>
+  </div>
+  <div class='content'>
+    <h3>Hi {{ user.first_name }}!</h3>
+  </div>
   {% else %}
-    <p>You are not logged in</p>
+  <div style="text-align:center">
+    <p>To be able to view the content, please log in or sign up.</p>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

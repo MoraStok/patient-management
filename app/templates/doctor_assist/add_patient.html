@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Sign Up{% endblock %}
+{% block title %}Add New Patient{% endblock %}
 
 {% block extend_footer %}{% endblock %}
 
 {% block content %}
 <div class="hero">
-  <h2>Sign Up</h2>
+  <h2>Add New Patient</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Sign Up</button>
+    <button type="submit">Create</button>
   </form>
 </div>
 {% endblock %}

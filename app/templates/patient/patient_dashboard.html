@@ -6,12 +6,16 @@
 {% block extend_footer %}{% endblock %}
 
 {% block content %}
+<div class='sidebar'>
+  <h3>Patient Management</h3>
+  <a href="{% url 'request_appointment' %}">Request an Appointment</a>
+  <a href="{% url 'view_medications' %}">View Medications</a>
+  <a href="{% url 'manage_appointments' %}">Manage Appointments</a>
+  <a href="{% url 'send_message' %}">Send Message to Doctor</a>
+</div>
+<div class='content'>
   <h1>Welcome, {{ user.first_name }}!</h1>
-  <p>You are logged in as a patient.</p>
-  <div>
-      <h2>Your Appointments</h2>
-      <a href="{% url 'request_appointment' %}">Request an Appointment</a>
-      <a href="{% url 'view_medications' %}">View Medications</a>
-      <a href="{% url 'send_message' %}">Send Message to Doctor</a>
-  </div>
+  <p>You are logged in as a {{ user.role }}.</p>
+</div>
+
 {% endblock %}
