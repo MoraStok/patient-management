@@ -10,12 +10,44 @@ from .models import (
     CustomUser,
     ClinicalHistory,
     Patient,
-    Professional,
+    Staff,
     Calendar,
-    CalendarEvent
+    CalendarEvent,
+    Message
     )
 
-class CustomUserCreationForm(UserCreationForm):
+class StaffUserCreationForm(UserCreationForm):
+    password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label="Password confirmation", widget=forms.PasswordInput
+    )
+
+    class Meta:
+        model = Staff
+        fields = ['first_name', 'last_name', 'date_of_birth', 'email', 'password1', 'password2', 'license']
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].widget.attrs.update({'placeholder': 'First Name', 'class': 'form-control'})
+        self.fields['last_name'].widget.attrs.update({'placeholder': 'Last Name', 'class': 'form-control'})
+        self.fields['date_of_birth'].widget.attrs.update({'placeholder': 'Date of Birth', 'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'placeholder': 'Email Address', 'class': 'form-control'})
+        self.fields['license'].widget.attrs.update({'placeholder': 'License', 'class': 'form-control'})
+        self.fields['password1'].widget.attrs.update({'placeholder': 'Password', 'class': 'form-control'})
+        self.fields['password2'].widget.attrs.update({'placeholder': 'Confirm Password', 'class': 'form-control'})
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        user.role = 'doctor'
+        if commit:
+            user.save()
+        return user
+
+class PatientUserCreationForm(UserCreationForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
 
@@ -25,8 +57,8 @@ class CustomUserCreationForm(UserCreationForm):
     )
 
     class Meta:
-        model = CustomUser
-        fields = ['first_name', 'last_name', 'date_of_birth', 'email', 'password1', 'password2']
+        model = Patient
+        fields = ['first_name', 'last_name', 'date_of_birth', 'email', 'password1', 'password2', 'social_sec_number']
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -38,6 +70,7 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['last_name'].widget.attrs.update({'placeholder': 'Last Name', 'class': 'form-control'})
         self.fields['date_of_birth'].widget.attrs.update({'placeholder': 'Date of Birth', 'class': 'form-control'})
         self.fields['email'].widget.attrs.update({'placeholder': 'Email Address', 'class': 'form-control'})
+        self.fields['social_sec_number'].widget.attrs.update({'placeholder': 'Social Security Number', 'class': 'form-control'})
         self.fields['password1'].widget.attrs.update({'placeholder': 'Password', 'class': 'form-control'})
         self.fields['password2'].widget.attrs.update({'placeholder': 'Confirm Password', 'class': 'form-control'})
 
@@ -50,9 +83,9 @@ class CustomUserCreationForm(UserCreationForm):
         return password2
 
     def save(self, commit=True):
-        # Save the provided password in hashed format
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        user.role = 'patient'
         if commit:
             user.save()
         return user
@@ -74,7 +107,7 @@ class ClinicHistCreation(forms.ModelForm):
     model = ClinicalHistory
     fields = '__all__'
 
-    prof = forms.ModelChoiceField(queryset=Professional.objects.all())
+    prof = forms.ModelChoiceField(queryset=Staff.objects.all())
     patient = forms.ModelChoiceField(queryset=Patient.objects.all())
 
 class CalendarCreation(forms.ModelForm):
@@ -82,7 +115,7 @@ class CalendarCreation(forms.ModelForm):
     fields = '__all__'
 
     cal_events = forms.ModelChoiceField(queryset=CalendarEvent.objects.all())
-    prof = forms.ModelChoiceField(queryset=Professional.objects.all())
+    prof = forms.ModelChoiceField(queryset=Staff.objects.all())
     patient = forms.ModelChoiceField(queryset=Patient.objects.all())
 
 # class AppointmentRequestForm(forms.ModelForm):
@@ -92,4 +125,23 @@ class CalendarCreation(forms.ModelForm):
 
 
 class MessageForm(forms.ModelForm):
-    pass
+    class Meta:
+        model = Message
+        fields = ['subject', 'content']  # Exclude recipient field
+        widgets = {
+            'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter subject'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter your message'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        # Optionally, you can pass the sender as a keyword argument
+        self.sender = kwargs.pop('sender', None)
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        message = super().save(commit=False)
+        if self.sender:
+            message.sender = self.sender  # Assign the sender
+        if commit:
+            message.save()
+        return message

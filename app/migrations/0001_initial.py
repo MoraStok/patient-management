@@ -57,14 +57,14 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Professional',
+            name='Staff',
             fields=[
                 ('customuser_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
                 ('title', models.CharField(max_length=200)),
             ],
             options={
-                'verbose_name': 'Professional',
-                'verbose_name_plural': 'Professionals',
+                'verbose_name': 'Staff',
+                'verbose_name_plural': 'Staffs',
             },
             bases=('app.customuser',),
         ),
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('customuser_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
                 ('social_sec_number', models.IntegerField(unique=True)),
-                ('prof_in_charge', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='app.professional')),
+                ('prof_in_charge', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='app.Staff')),
             ],
             options={
                 'verbose_name': 'Patient',
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=100, null=True)),
                 ('file', models.FileField(blank=True, null=True, upload_to='clinic')),
                 ('patient', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='app.patient')),
-                ('prof', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='app.professional')),
+                ('prof', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='app.Staff')),
             ],
             options={
                 'verbose_name': 'Clinical History',
@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('cal_events', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='app.calendarevent')),
                 ('patient', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='app.patient')),
-                ('prof', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='app.professional')),
+                ('prof', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='app.Staff')),
             ],
             options={
                 'verbose_name': 'Calendar',

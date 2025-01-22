@@ -1,20 +1,20 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .forms import CustomUserChangeForm, CustomUserCreationForm, ClinicHistCreation
+from .forms import CustomUserChangeForm, PatientUserCreationForm, ClinicHistCreation, StaffUserCreationForm
 
 from .models import (
     CustomUser,
     ClinicalHistory,
     Calendar,
-    Professional,
+    Staff,
     Patient
 )
 
 class UserAdmin(BaseUserAdmin):
     # The forms to add and change user instances
     form = CustomUserChangeForm
-    add_form = CustomUserCreationForm
+    add_form = StaffUserCreationForm
     model = CustomUser
 
     # The fields to be used in displaying the User model.
@@ -59,11 +59,17 @@ class ClinicAdmin(admin.ModelAdmin):
     list_display = ('id',)
     raw_id_fields = ('prof', 'patient')
 
-@admin.register(Professional)
-class ProfessionalAdmin(admin.ModelAdmin):
+@admin.register(Staff)
+class StaffAdmin(admin.ModelAdmin):
+    form = CustomUserChangeForm
+    add_form = StaffUserCreationForm
+    model = Staff
     list_display = ('id', 'first_name','last_name', 'is_active')
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
+    form = CustomUserChangeForm
+    add_form = PatientUserCreationForm
+    model = Patient
     list_display = ('id', 'first_name', 'last_name','social_sec_number', 'is_active')
     list_filter = ('prof_in_charge', 'is_active')

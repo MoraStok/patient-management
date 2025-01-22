@@ -4,3 +4,13 @@
 {% block extend_header %}{% endblock %}
 
 {% block extend_footer %}{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Send a Message to Your Doctor</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-success">Send Message</button>
+    </form>
+  </div>
+{% endblock %}

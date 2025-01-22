@@ -3,9 +3,15 @@ from django.template.defaultfilters import slugify
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
 
+ROLE_CHOICES = [
+        ('doctor', 'Doctor'),
+        ('assistant', 'Doctor\'s Assistant'),
+        ('patient', 'Patient'),
+]
+
 ## CUSTOM USER MODEL ##
 class UserManager(BaseUserManager):
-    def create_user(self, email, date_of_birth, first_name, last_name, password=None, role='patient'):
+    def create_user(self, email, date_of_birth, first_name, last_name, password=None):
         """
         Creates and saves a User with the given email, date of
         birth, name and password. 
@@ -18,7 +24,6 @@ class UserManager(BaseUserManager):
             date_of_birth=date_of_birth,
             first_name=first_name,
             last_name=last_name,
-            role=role,
         )
         user.set_password(password)
         user.save(using=self._db)
@@ -35,18 +40,12 @@ class UserManager(BaseUserManager):
             date_of_birth=date_of_birth,
             first_name=first_name,
             last_name=last_name,
-            role='doctor',
         )
         user.is_admin = True
         user.save(using=self._db)
         return user
 
 class CustomUser(AbstractUser):
-    ROLE_CHOICES = [
-        ('doctor', 'Doctor'),
-        ('assistant', 'Doctor\'s Assistant'),
-        ('patient', 'Patient'),
-    ]
     username = None
     email = models.EmailField(
         verbose_name="email address",
@@ -57,7 +56,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
-    avatar = models.ImageField(blank=True, null=True, upload_to="avatar")
+    avatar = models.ImageField(blank=True, null=True, upload_to="avatar", help_text='Avatar Image')
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -82,17 +81,16 @@ class CustomUser(AbstractUser):
 
     @property
     def is_staff(self):
-        "Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
         return self.is_admin
 
-## APP MODELS ##
-class Professional(CustomUser):
-    class Meta:
-        verbose_name_plural = 'Professionals'
-        verbose_name = 'Professional'
 
-    title = models.CharField(max_length=200)
+## APP MODELS ##
+class Staff(CustomUser):
+    class Meta:
+        verbose_name_plural = 'Staff Members'
+        verbose_name = 'Staff'
+
+    license = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return self.get_full_name()
@@ -102,8 +100,8 @@ class Patient(CustomUser):
         verbose_name_plural = 'Patients'
         verbose_name = 'Patient'
 
-    prof_in_charge = models.ForeignKey(Professional, on_delete=models.CASCADE)
-    social_sec_number = models.IntegerField(unique=True, null=False)
+    prof_in_charge = models.ForeignKey(Staff, on_delete=models.CASCADE, null=True, blank=True)
+    social_sec_number = models.IntegerField(unique=True, null=False, help_text='Social Security Number')
 
     def __str__(self):
         return self.get_full_name()
@@ -115,7 +113,7 @@ class ClinicalHistory(models.Model):
     
     name = models.CharField(max_length=100, blank=True, null=True)
     file = models.FileField(blank=True, upload_to="clinic", null=True)
-    prof = models.ForeignKey(Professional, on_delete=models.SET_NULL, null=True)
+    prof = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True)
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
@@ -156,22 +154,55 @@ class CalendarEvent(models.Model):
     
     def clean(self):
         if self.end_time <= self.start_time:
-            raise ValidationError('Ending hour must be after the starting hour')
-
-        events = CalendarEvent.objects.filter(day=self.day)
-        if events.exists():
-            for event in events:
-                if self.check_overlap(event.start_time, event.end_time, self.start_time, self.end_time):
-                    raise ValidationError(
-                        'There is an overlap with another event: ' + str(event.name) + ', ' + str(
-                            event.start_time) + '-' + str(event.end_time))
-
+            raise ValidationError("The end time must be after the start time.")
+        
+        overlapping_events = CalendarEvent.objects.filter(
+            start_time__lt=self.end_time,
+            end_time__gt=self.start_time
+        ).exclude(pk=self.pk)
+        
+        if overlapping_events.exists():
+            overlap = overlapping_events.first()
+            raise ValidationError(
+                f"Overlap with event '{overlap.name}' from {overlap.start_time} to {overlap.end_time}."
+            )
 
 class Calendar(models.Model):
     class Meta:
         verbose_name = 'Calendar'
         verbose_name_plural = 'Calendars'
 
-    cal_events = models.ForeignKey(CalendarEvent, on_delete=models.CASCADE, blank=True, null=True)
-    prof = models.ForeignKey(Professional, on_delete=models.SET_NULL, null=True)
+    cal_events = models.ForeignKey(CalendarEvent, on_delete=models.CASCADE, blank=True, null=True, related_name="calendars")
+    prof = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, related_name="calendars")
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True)
+
+class Message(models.Model):
+    sender = models.ForeignKey(
+        Patient, 
+        on_delete=models.CASCADE, 
+        related_name='sent_messages',
+        help_text='The user sending the message.'
+    )
+    subject = models.CharField(
+        max_length=255, 
+        help_text='The subject of the message.'
+    )
+    content = models.TextField(
+        help_text='The body of the message.'
+    )
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        help_text='The time the message was sent.'
+    )
+    is_read = models.BooleanField(
+        default=False,
+        help_text='Whether the recipient has read the message.'
+    )
+
+    class Meta:
+        ordering = ['-timestamp']  # Most recent messages first
+        verbose_name = 'Message'
+        verbose_name_plural = 'Messages'
+
+    def __str__(self):
+        return f"Message from {self.sender}: {self.subject}"
